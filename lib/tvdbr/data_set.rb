@@ -43,7 +43,7 @@ module Tvdbr
     # dateify :release_date
     def self.dateify(*attrs)
       attrs.each do |a|
-        define_method(a) { Time.parse(self[a]) if self[a] }
+        define_method(a) { Time.parse(self[a]) rescue nil if self[a] }
       end
     end
 

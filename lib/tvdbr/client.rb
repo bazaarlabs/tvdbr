@@ -31,7 +31,7 @@ module Tvdbr
       updates[:series].each do |series_id|
         series = self.find_series_by_id(series_id)
         block.call(series)
-      end
+      end if updates[:series].respond_to?(:each)
     end
 
     # Yields the block for every updated episode
@@ -41,7 +41,7 @@ module Tvdbr
       updates[:episodes].each do |episode_id|
         episode = self.find_episode_by_id(episode_id)
         block.call(episode)
-      end
+      end if updates[:episodes].respond_to?(:each)
     end
 
     # Returns all series matching the given title
@@ -94,10 +94,9 @@ module Tvdbr
     # tvdb.find_updates_since(1.day.ago)
     # => { :series => [1,2,3], :episodes => [1,2,3], :time => '<stamp>'  }
     def find_updates_since(time)
-      @_updated_results ||= {}
       stamp = time.to_i # Get timestamp
-      result = @_updated_results[stamp] ||= self.class.get("/Updates.php?type=all&time=#{stamp}")['Items']
-      { :series => result['Series'].map(&:to_i), :episodes => result['Episode'].map(&:to_i), :time => result['Time'] }
+      result = self.class.get("/Updates.php?type=all&time=#{stamp}")['Items']
+      { :series => result['Series'], :episodes => result['Episode'], :time => result['Time'] }
     end
 
     protected
