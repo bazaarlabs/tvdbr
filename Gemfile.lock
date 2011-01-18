@@ -1,0 +1,27 @@
+PATH
+  remote: .
+  specs:
+    tvdbr (0.0.1)
+      activesupport
+      hashie
+      httparty
+
+GEM
+  remote: http://rubygems.org/
+  specs:
+    activesupport (3.0.3)
+    crack (0.1.8)
+    hashie (0.4.0)
+    httparty (0.6.1)
+      crack (= 0.1.8)
+    rake (0.8.7)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  activesupport
+  hashie
+  httparty
+  rake
+  tvdbr!
