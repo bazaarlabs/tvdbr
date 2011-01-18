@@ -1,3 +1,5 @@
+require 'Hashie' unless defined?(Hashie)
+
 module Tvdbr
   class DataSet < Hashie::Mash
     attr_reader :parent
@@ -33,7 +35,7 @@ module Tvdbr
     # listify :lista, :listb
     def self.listify(*attrs)
       attrs.each do |a|
-        define_method(a) { self[a] ? self[a].from(1).split("|").map(&:strip) : []  }
+        define_method(a) { self[a] ? self[a][1..-1].split("|").map(&:strip) : []  }
       end
     end
 
@@ -59,10 +61,19 @@ module Tvdbr
       # => [:foo => "bar", ...]
       def normalize_keys(hash)
         hash.inject({}) do |options, (key, value)|
-          options[(key.underscore rescue key) || key] = value
+          options[(underscore(key) rescue key) || key] = value
           options
         end
       end
 
+      def underscore(camel_cased_word)
+        word = camel_cased_word.to_s.dup
+        word.gsub!(/::/, '/')
+        word.gsub!(/([A-Z]+)([A-Z][a-z])/,'\1_\2')
+        word.gsub!(/([a-z\d])([A-Z])/,'\1_\2')
+        word.tr!("-", "_")
+        word.downcase!
+        word
+      end
   end
 end
