@@ -1,5 +1,6 @@
 require 'rubygems'
 require 'tvdbr'
+require 'active_support/all'
 
 tvdb = Tvdbr::Client.new('YOUR_API_KEY')
 
@@ -27,15 +28,16 @@ series.episodes.each do |e|
  puts e.name + " (S#{e.season_num}E#{e.episode_num})"
 end
 
-#  # Fetch series updates since given timestamp
-#  results = tvdb.find_updates_since(2.hours.ago)
-#  puts "\n\nUpdated series since 2 hours ago: #{results[:series].size} series\n\n"
-#  tvdb.each_updated_series(:since => 2.hours.ago) do |series|
-#    puts "#{series.id} - #{series.title}"
-#  end
-#
-#  # Fetch episode udpates since given timestamp
-#  puts "Updated episodes since 2 hours ago: #{results[:episodes].size} episodes\n\n"
-#  tvdb.each_updated_episode(:since => 2.hours.ago) do |episode|
-#    puts "#{episode.id} - #{episode.name} - #{episode.seriesid}"
-#  end
+ # Fetch series updates since given timestamp
+ time = 10.minutes.ago
+ results = tvdb.find_updates_since(time)
+ puts "\n\nUpdated series since 10 mins ago: #{results[:series].size} series\n\n"
+ tvdb.each_updated_series(:since => time) do |series|
+   puts "#{series.id} - #{series.title}"
+ end
+
+ # Fetch episode udpates since given timestamp
+ puts "\nUpdated episodes since 10 mins ago: #{results[:episodes].size} episodes\n\n"
+ tvdb.each_updated_episode(:since => time) do |episode|
+   puts "#{episode.id} - #{episode.name} - #{episode.seriesid}"
+ end
