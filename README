@@ -1,0 +1,70 @@
+# 1. Associate our media with tvdb
+# 2. Iterate through and search episodes (backfill missing episodes, backfill better screenshots)
+# 3. Update rake task, daily => get all the updates, reference the changes => propogate to our data (new episodes, new shows)
+
+# rake tvdb:populate => associate media to tvdb and backfill missing episodes and show info
+
+  Media.tvdb_id_is_null.find_each do |media|
+    tvdb_match = tvdb.fetch_series_from_data(:title => media.title, :starring => media.starring)
+    # Update media info and/or associate media to tvdb (ref_id) and change source
+    media.update_attributes(:source => "Tvdb", :tvdb_id => tvdb_match.id)
+    tvdb_match.episodes.each do |tvdb_episode|
+      episode = media.episodes.where(:episode => tvdb_episode.episode_num, :season => tvdb_episode.season_num)
+      # Update or create episode from the information from tvdb
+    end
+  end
+
+# rake tvdb:daily    => update database to sync with new shows and episodes on a daily task (attach existing show)
+
+  tvdb.each_updated_series(:since => 1.day.ago) do |tvdb_series|
+    puts "#{series.id} - #{series.title}"
+    media = Media.where(:ref_id => tvdb_series.id).first
+    # Update information from the new data?
+  end
+
+  tvdb.each_updated_episode(:since => 1.day.ago) do |tvdb_episode|
+    media = Media.where(:ref_id => tvdb_series.seriesid).first
+    episode = Episode.where(:season => tvdb_episode.season_num, :episode => tvdb_episode.episode_num).first
+    # Update or create episode information based on the new data.
+  end
+
+== Initial Database Processing
+
+- Get the current server time
+  a. Retrieve http://www.thetvdb.com/api/Updates.php?type=none. (Time.now.to_i) [1295299577]
+  b. Store this value for later use (denoted as <previoustime> for rest of example).
+
+- Loop through and look up each series id
+  a. Retrieve http://www.thetvdb.com/api/GetSeries.php?seriesname=<series name from your database>
+  b. Optionally present results to user so they can select the match they want.
+  c. Store this series id in a table in your database.
+
+- Get base information for each series
+  a. Retrieve <mirrorpath_zip>/api/<apikey>/series/<seriesid>/all/<language>.zip and extract <language>.xml and banners.xml.
+  b. Process the XML data in <language>.xml and store all <Series> data.
+  c. Download each series banner in banners.xml and prompt the user to see which they want to keep.
+  Note: Make sure you record <id> from each series, since it's returned in updates as <Series>.
+
+- Get base information for each episode
+  a. Use <language>.xml from step 3 to find and store the data associated with your episode.
+  b. Use <filename> from results in step above to download the episode image from <mirrorpath_banners>/banners/<filename>.
+  Note: Make sure you record <id> from each episode, since it's returned in updates as <Episode>.
+
+== Future Database Processing
+
+These steps are used to keep your database current with the latest information.
+
+- Get a list of all series and episode updates
+  a. Retrieve http://www.thetvdb.com/api/Updates.php?type=all&time=<previoustime>.
+  b. Process the returned XML and loop through each series (<seriesid>) and episode (<episodeid>) entry.
+
+- Update each series in the update XML
+  a. Retrieve <mirrorpath_xml>/api/<apikey>/series/<seriesid>/<language>.xml.
+  b. Process XML data and use to replace information in local database.
+
+- Update each episode in the update XML
+  a. Retrieve <mirrorpath_xml>/api/<apikey>/episodes/<episodeid>/<language>.xml.
+  b. Process XML data and use to replace information in local database.
+
+- Record <previoustime> for next update
+  a. Using the XML from step 2, store <Time> as <previoustime> and use for your next call to Updates.php.
