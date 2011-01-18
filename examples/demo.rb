@@ -1,6 +1,6 @@
-require 'httparty'
+require 'tvdbr'
 
-tvdb = Tvdb::Base.new('8C8719A1466ECF7A')
+tvdb = Tvdbr::Client.new('8C8719A1466ECF7A')
 
 # Fetch series based on title and starring
 series_wrong = tvdb.fetch_series_from_data(:title => "Dexter",
