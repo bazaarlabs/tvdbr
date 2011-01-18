@@ -1,4 +1,4 @@
-module Tvdb
+module Tvdbr
   class Client
     include HTTParty
     format :xml

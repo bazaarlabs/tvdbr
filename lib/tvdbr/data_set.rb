@@ -1,4 +1,4 @@
-module Tvdb
+module Tvdbr
   class DataSet < Hashie::Mash
     attr_reader :parent
 
