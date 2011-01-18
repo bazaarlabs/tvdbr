@@ -1,3 +1,5 @@
+require 'httparty' unless defined?(HTTParty)
+
 module Tvdbr
   class Client
     include HTTParty
@@ -8,6 +10,7 @@ module Tvdbr
     # Tvdb.new('some_key')
     def initialize(api_key)
       @api_key = api_key
+      check_api_key!
     end
 
     # Fetches a series object based on the given attributes hash
@@ -15,7 +18,7 @@ module Tvdbr
     # => { "SeriesName" => "Dexter", ... } or nil
     #
     def fetch_series_from_data(options={})
-      return nil unless options[:starring].present?
+      return self.find_series_by_title(options[:title]) if options[:starring].nil?
       series_results = self.find_all_series_by_title(options[:title])
       expected_actors = options[:starring].split(",")
       series_results.find { |series| series.actor_match?(expected_actors) }
@@ -108,6 +111,13 @@ module Tvdbr
       def get_with_key(*args)
         args[0] = "/#{@api_key}/" + args[0]
         self.class.get(*args)
+      end
+
+      # Checks if the api key works by retrieving mirrors
+      def check_api_key!
+        self.mirror_urls
+      rescue
+        raise "Please check your TVDB API Key!"
       end
   end
 end
