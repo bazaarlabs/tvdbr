@@ -30,7 +30,7 @@ module Tvdbr
       updates = self.find_updates_since(options[:since])
       updates[:series].each do |series_id|
         series = self.find_series_by_id(series_id)
-        block.call(series)
+        block.call(series) if series && series.title
       end if updates[:series].respond_to?(:each)
     end
 
@@ -40,7 +40,7 @@ module Tvdbr
       updates = self.find_updates_since(options[:since])
       updates[:episodes].each do |episode_id|
         episode = self.find_episode_by_id(episode_id)
-        block.call(episode)
+        block.call(episode) if episode && episode.name
       end if updates[:episodes].respond_to?(:each)
     end
 
