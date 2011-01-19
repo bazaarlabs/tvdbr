@@ -69,6 +69,7 @@ module Tvdbr
       series_url = "/series/#{series_id}"
       series_url << "/all" if options[:all]
       result = self.get_with_key(series_url)['Data']
+      return nil unless result && result['Series']
       return result if options[:all]
       return result["Series"] if options[:raw]
       Series.new(self, result["Series"])
@@ -80,6 +81,7 @@ module Tvdbr
     def find_episode_by_id(episode_id, options={})
       episode_url = "/episodes/#{episode_id}"
       result = self.get_with_key(episode_url)['Data']
+      return nil unless result && result['Episode']
       return result["Episode"] if options[:raw]
       Episode.new(self, result["Episode"])
     end
