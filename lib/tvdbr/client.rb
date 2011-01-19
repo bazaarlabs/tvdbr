@@ -21,7 +21,7 @@ module Tvdbr
       return self.find_series_by_title(options[:title]) if options[:starring].nil?
       series_results = self.find_all_series_by_title(options[:title])
       expected_actors = options[:starring].split(",")
-      series_results.find { |series| series.actor_match?(expected_actors) }
+      series_results.compact.find { |series| series.actor_match?(expected_actors) }
     end
 
     # Yields the block for every updated series
@@ -107,7 +107,11 @@ module Tvdbr
       # tvdb.get_with_key("/some/url", :query => { :foo => "bar" })
       def get_with_key(*args)
         args[0] = "/#{@api_key}/" + args[0]
-        self.class.get(*args)
+        begin
+          self.class.get(*args)
+        rescue Exception => e
+          { 'Data' => nil }
+        end
       end
 
       # Checks if the api key works by retrieving mirrors
