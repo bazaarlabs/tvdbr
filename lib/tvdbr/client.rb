@@ -92,6 +92,7 @@ module Tvdbr
       Array(self.get_with_key('/mirrors.xml')['Mirrors']['Mirror']['mirrorpath'])
     end
 
+    # Returns a list of image locations for the series
     def banner_urls(series_id)
       self.get_with_key("/series/#{series_id}/banners.xml")['Banners']['Banner']
     end
