@@ -52,7 +52,7 @@ module Tvdbr
       return [] if result.blank? || result['Series'].blank?
       result = result['Series'].is_a?(Array) ? result['Series'] : [result['Series']]
       result.first(5).map { |s| self.find_series_by_id(s['seriesid']) }
-    rescue StandardError => e
+    rescue MultiXml::ParseError => e
       puts "Result for title '#{title}' could not be parsed!"
       return []
     end
