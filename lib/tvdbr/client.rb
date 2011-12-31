@@ -68,6 +68,7 @@ module Tvdbr
     def find_series_by_id(series_id, options={})
       series_url = "/series/#{series_id}"
       series_url << "/all" if options[:all]
+      series_url << "/en.xml"
       result = self.get_with_key(series_url)['Data']
       return nil unless result && result['Series']
       return result if options[:all]
