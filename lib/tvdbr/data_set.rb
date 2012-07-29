@@ -1,4 +1,4 @@
-require 'Hashie' unless defined?(Hashie)
+require 'hashie' unless defined?(Hashie)
 
 module Tvdbr
   class DataSet < Hashie::Mash
