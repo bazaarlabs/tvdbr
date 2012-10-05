@@ -8,7 +8,8 @@ Yes, there are a lot of libraries out there for this. I needed a few things that
   * An easy way to get all updates since a certain time, to keep our database synced
   * Easy helpers for accessing episodes from a series and the objects conceptually mapped to our existing schema.
 
-Please reference the [TVDB APIs](http://thetvdb.com/wiki/index.php?title=Programmers_API) to become familiar with the available actions and properties.
+Please reference the [TVDB APIs](http://thetvdb.com/wiki/index.php?title=Programmers_API) to 
+become familiar with the available actions and properties.
 
 ## Installation
 
@@ -24,9 +25,17 @@ Get a series based on the id:
 
     series = tvdb.find_series_by_id('1234')
 
+Get a series based on a remote (IMDB) id:
+
+    series = tvdb.find_series_by_remote_id('tt0290978')
+
 Get an episode based on the id:
 
     episode = tvdb.find_episode_by_id('5678')
+
+Get an episode based on the seriesid and airdate:
+
+    episode = tvdb.find_episode_by_airdate(80348, '2007-09-24')
 
 Fetch a series based on the title:
 
@@ -48,14 +57,22 @@ Get the episodes for a series:
 Get the updated series since a given timestamp:
 
     tvdb.each_updated_series(:since => 1.day.ago) do |series|
-       puts "#{series.id} - #{series.title}"
-     end
+      puts "#{series.id} - #{series.title}"
+    end
 
 Get the updated episodes since a given timestamp:
 
     tvdb.each_updated_episode(:since => 1.day.ago) do |episode|
       puts "#{episode.id} - #{episode.name} - #{episode.seriesid}"
     end
+
+You can also query using the newer static updates, by providing a 'period':
+
+    tvdb.each_updated_episode(:period => :day) do |episode|
+      puts "#{episode.id} - #{episode.name} - #{episode.seriesid}"
+    end
+
+You can provide `day`, `week`, or `month` to get complete data for that range of time.
 
 ## Known Issues
 
