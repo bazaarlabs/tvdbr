@@ -6,6 +6,8 @@ module Tvdbr
     format :xml
     base_uri "http://www.thetvdb.com/api/"
 
+    attr_reader :api_key
+
     # Creates an instance of the TVDB interface
     # Tvdb.new('some_key')
     def initialize(api_key)
@@ -26,8 +28,9 @@ module Tvdbr
 
     # Yields the block for every updated series
     # tvdb.each_updated_series(:since => 1.day.ago) { |s| Media.find_by_tvdb_id(s.id).title = s.title }
+    # tvdb.each_updated_series(:period => :day) { |s| Media.find_by_tvdb_id(s.id).title = s.title }
     def each_updated_series(options={}, &block)
-      updates = self.find_updates_since(options[:since])
+      updates = options[:since] ? find_updates_since(options[:since]) : find_static_updates(options[:period])
       updates[:series].each do |series_id|
         series = self.find_series_by_id(series_id)
         block.call(series) if series && series.title
@@ -36,8 +39,9 @@ module Tvdbr
 
     # Yields the block for every updated episode
     # tvdb.each_updated_episode(:since => 1.day.ago) { |s| Episode.find_by_tvdb_id(s.id).title = s.title }
+    # tvdb.each_updated_episode(:period => :day) { |s| Episode.find_by_tvdb_id(s.id).title = s.title }
     def each_updated_episode(options={}, &block)
-      updates = self.find_updates_since(options[:since])
+      updates = options[:since] ? find_updates_since(options[:since]) : find_static_updates(options[:period])
       updates[:episodes].each do |episode_id|
         episode = self.find_episode_by_id(episode_id)
         block.call(episode) if episode && episode.name
@@ -90,6 +94,25 @@ module Tvdbr
       Episode.new(self, result["Episode"])
     end
 
+    # Returns an Episode data by airdate
+    # tvdb.find_episode_by_airdate(80348, '2007-09-24')
+    def find_episode_by_airdate(series_id, airdate)
+      base_url = "/GetEpisodeByAirDate.php"
+      query_params = { :apikey => @api_key, :seriesid => series_id, :airdate => airdate  }
+      result = self.class.get(base_url, :query => query_params)['Data']
+      return nil unless result && result['Episode']
+      Episode.new(self, result['Episode'])
+    end
+
+    # Returns series data for a given series by specified remote id
+    # tvdb.find_series_by_remote_id('tt0290978', 'imdbid')
+    def find_series_by_remote_id(remote_id, remote_source="imdbid")
+      remote_base_url = "/GetSeriesByRemoteID.php"
+      result = self.class.get(remote_base_url, :query => { remote_source => remote_id })['Data']
+      return nil unless result && result['Series']
+      Series.new(self, result['Series'])
+    end
+
     # Returns the list of TVDB mirror_urls
     # => ["http://thetvdb.com", ...]
     def mirror_urls
@@ -107,7 +130,20 @@ module Tvdbr
     def find_updates_since(time)
       stamp = time.to_i # Get timestamp
       result = self.class.get("/Updates.php?type=all&time=#{stamp}")['Items']
-      { :series => result['Series'], :episodes => result['Episode'], :time => result['Time'] }
+      { :series => result['Series'],
+        :episodes => result['Episode'],
+        :time => result['Time'] }
+    end
+
+    # Returns static updates for the given period
+    # find_static_updates(:day) # :week or :month
+    # { :series => [1,2,3], :episodes => [1,2,3], :time => '<stamp>'  }
+    def find_static_updates(period)
+      update_url = "/updates/updates_#{period}.xml"
+      result = self.get_with_key(update_url)['Data']
+      { :series => result['Series'].map { |u| u["id"] },
+        :episodes => result['Episode'].map { |u| u["id"] },
+        :time => result['time'] }
     end
 
     protected
@@ -117,8 +153,10 @@ module Tvdbr
       def get_with_key(*args)
         args[0] = "/#{@api_key}/" + args[0]
         begin
-          self.class.get(*args)
-        rescue Exception => e
+          Tvdbr::Retryable.retry(:on => MultiXml::ParseError) do
+            self.class.get(*args).parsed_response
+          end
+        rescue Tvdbr::RetryableError => e
           { 'Data' => nil }
         end
       end
@@ -126,8 +164,8 @@ module Tvdbr
       # Checks if the api key works by retrieving mirrors
       def check_api_key!
         self.mirror_urls
-      rescue
-        raise "Please check your TVDB API Key!"
+      rescue Exception => e
+        raise "Please check your TVDB API Key, '#{self.api_key}' seems invalid!"
       end
   end
 end
