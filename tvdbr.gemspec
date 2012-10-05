@@ -18,6 +18,6 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib"]
 
   s.add_dependency "hashie"
-  s.add_dependency "httparty"
+  s.add_dependency "httparty", '>= 0.8.0'
   s.add_development_dependency "rake"
 end
