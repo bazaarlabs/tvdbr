@@ -5,6 +5,10 @@ require 'active_support/all'
 # Updated APIs circa 10/05/2012
 tvdb = Tvdbr::Client.new('5FEC454623154441')
 
+# Find episode by id
+episode = tvdb.find_episode_by_id(326177)
+puts episode.inspect
+
 # Find episode with airdate
 episode = tvdb.find_episode_by_airdate(80348, '2007-09-24')
 puts episode.inspect

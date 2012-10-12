@@ -7,10 +7,10 @@ module Tvdbr
     ## INSTANCE METHODS ##
 
     # Tvdb::DataSet.new(self, { :foo => "bar" })
-    def initialize(parent, *args)
+    def initialize(parent, source_hash = nil, default = nil, &block)
       @parent = parent
-      args[0] = normalize_keys(args[0]) if args[0].is_a?(Hash)
-      super(*args)
+      source_hash = normalize_keys(source_hash) if source_hash.is_a?(Hash)
+      super(source_hash, default, &block)
     end
 
     # Outputs: <#Tvdb::Series actors="..." added=nil added_by=nil>
@@ -61,9 +61,15 @@ module Tvdbr
       # => [:foo => "bar", ...]
       def normalize_keys(hash)
         hash.inject({}) do |options, (key, value)|
-          options[(underscore(key) rescue key) || key] = value
+          options[(underscore(key) rescue key) || key] = normalize_value(value)
           options
         end
+      end
+
+      # Normalizes a value for the formatted hash
+      # Sometimes TVDB returns a hash with a "__content__" key which needs to be removed
+      def normalize_value(val)
+        val.respond_to?(:has_key?) && val.has_key?("__content__") ? val["__content__"] : val
       end
 
       def underscore(camel_cased_word)
