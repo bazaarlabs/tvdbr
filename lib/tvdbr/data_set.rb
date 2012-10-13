@@ -2,6 +2,8 @@ require 'hashie' unless defined?(Hashie)
 
 module Tvdbr
   class DataSet < Hashie::Mash
+    class InvalidFormat < StandardError; end
+
     attr_reader :parent
 
     ## INSTANCE METHODS ##
@@ -11,6 +13,8 @@ module Tvdbr
       @parent = parent
       source_hash = normalize_keys(source_hash) if source_hash.is_a?(Hash)
       super(source_hash, default, &block)
+    rescue ArgumentError => e # #<ArgumentError: wrong number of arguments (0 for 1)>
+      raise InvalidFormat, "#{self.class.name} parse failed with source #{source_hash.inspect}"
     end
 
     # Outputs: <#Tvdb::Series actors="..." added=nil added_by=nil>
@@ -66,10 +70,16 @@ module Tvdbr
         end
       end
 
-      # Normalizes a value for the formatted hash
-      # Sometimes TVDB returns a hash with a "__content__" key which needs to be removed
+      # Normalizes a value for the formatted hash values
+      # TVDB hashes should not contain more hashes
+      # Sometimes TVDB returns a hash with content inside which needs to be extracted
       def normalize_value(val)
-        val.respond_to?(:has_key?) && val.has_key?("__content__") ? val["__content__"] : val
+        if val.is_a?(Hash)
+          val = val["__content__"] if val.has_key?("__content__")
+          val.to_s
+        else # any other value
+          val
+        end
       end
 
       def underscore(camel_cased_word)
