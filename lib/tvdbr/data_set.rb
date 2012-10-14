@@ -76,6 +76,8 @@ module Tvdbr
       def normalize_value(val)
         if val.is_a?(Hash)
           val = val["__content__"] if val.has_key?("__content__")
+          val = val.values.first if val.respond_to?(:values) && val.values.one?
+          val = val.join(" ") if val.respond_to?(:join)
           val.to_s
         else # any other value
           val

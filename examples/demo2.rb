@@ -8,6 +8,8 @@ tvdb = Tvdbr::Client.new('5FEC454623154441')
 # Find episode by id
 episode = tvdb.find_episode_by_id(326177)
 puts episode.inspect
+episode = tvdb.find_episode_by_id(174207)
+puts episode.inspect
 
 # Find episode with airdate
 episode = tvdb.find_episode_by_airdate(80348, '2007-09-24')
