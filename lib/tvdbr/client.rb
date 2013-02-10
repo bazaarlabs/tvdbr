@@ -53,7 +53,7 @@ module Tvdbr
     # => [{ "SeriesName" => "Dexter", ... }, ...]
     def find_all_series_by_title(title)
       result = self.class.get("/GetSeries.php", :query => { :seriesname => title, :language => "en" })['Data']
-      return [] if result.blank? || result['Series'].blank?
+      return [] if result.nil? || result.empty? || result['Series'].nil? || result['Series'].empty?
       result = result['Series'].is_a?(Array) ? result['Series'] : [result['Series']]
       result.first(5).map { |s| self.find_series_by_id(s['seriesid']) }
     rescue MultiXml::ParseError => e
