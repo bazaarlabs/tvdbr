@@ -5,6 +5,7 @@ module Tvdbr
     include HTTParty
     format :xml
     base_uri "http://www.thetvdb.com/api/"
+    headers 'Accept-encoding' => 'gzip'
 
     attr_reader :api_key
 
