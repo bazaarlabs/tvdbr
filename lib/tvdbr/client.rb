@@ -8,11 +8,14 @@ module Tvdbr
     headers 'Accept-encoding' => 'gzip'
 
     attr_reader :api_key
+    attr_accessor :language
 
     # Creates an instance of the TVDB interface
     # Tvdb.new('some_key')
     def initialize(api_key)
       @api_key = api_key
+      @language = "en"
+
       check_api_key!
     end
 
@@ -53,7 +56,7 @@ module Tvdbr
     # tvdb.find_all_series_by_title("Dexter")
     # => [{ "SeriesName" => "Dexter", ... }, ...]
     def find_all_series_by_title(title)
-      result = self.class.get("/GetSeries.php", :query => { :seriesname => title, :language => "en" })['Data']
+      result = self.class.get("/GetSeries.php", :query => { :seriesname => title, :language => self.language })['Data']
       return [] if result.nil? || result.empty? || result['Series'].nil? || result['Series'].empty?
       result = result['Series'].is_a?(Array) ? result['Series'] : [result['Series']]
       result.first(5).map { |s| self.find_series_by_id(s['seriesid']) }
@@ -76,7 +79,7 @@ module Tvdbr
     def find_series_by_id(series_id, options={})
       series_url = "/series/#{series_id}"
       series_url << "/all" if options[:all]
-      series_url << "/en.xml"
+      series_url << "/#{self.language}.xml"
       result = self.get_with_key(series_url)['Data']
       return nil unless result && result['Series']
       return result if options[:all]
