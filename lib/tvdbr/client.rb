@@ -7,14 +7,14 @@ module Tvdbr
     base_uri "http://www.thetvdb.com/api/"
     headers 'Accept-encoding' => 'gzip'
 
-    attr_reader :api_key
-    attr_accessor :language
+    attr_reader :api_key,
+                :language
 
     # Creates an instance of the TVDB interface
     # Tvdb.new('some_key')
-    def initialize(api_key)
+    def initialize(api_key, options={})
       @api_key = api_key
-      @language = "en"
+      @language = options[:lang] || "en"
 
       check_api_key!
     end
